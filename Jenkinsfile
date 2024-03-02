@@ -1,16 +1,31 @@
 pipeline {
     agent any
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
+    }
 
     stages {
-        stage('Cloning Git Repository') {
+        stage('SCM Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/GabrielChan1/jk-public-gh.git'
+                git branch: 'main', credentialsId: 'jk-gh-tk', url: 'https://github.com/GabrielChan1/jk-private-gh.git'
             }
         }
         
-        stage('Building Image') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t webapp:${BUILD_NUMBER} .'
+                sh 'docker build -t gabrielchan1/webapp:$BUILD_NUMBER .'
+            }
+        }
+        
+        stage('Login to Docker Hub') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+        
+        stage('Push Image') {
+            steps {
+                sh 'docker push gabrielchan1/webapp:$BUILD_NUMBER'
             }
         }
         
@@ -18,7 +33,7 @@ pipeline {
             steps {
                 sh '''
                 #docker stop webapp_ctr
-                docker run --rm -d -p 3000:3000 --name webapp_ctr webapp:${BUILD_NUMBER}
+                docker run --rm -d -p 3000:3000 --name webapp_ctr gabrielchan1/webapp:${BUILD_NUMBER}
                 '''
             }
         }
