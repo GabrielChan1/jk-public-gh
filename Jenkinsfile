@@ -24,6 +24,3 @@ pipeline {
         }
     }
 }
-0 comments on commit 0c58d90
-@GabrielChan1
-Comment
